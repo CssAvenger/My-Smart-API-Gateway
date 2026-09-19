@@ -83,7 +83,7 @@ class AccessControl:
         
     @staticmethod
     def __get_role_from_user_data(user_data: dict) -> Roles | None:
-        role_str = DUMMY_USER_DATA.get(user_data.get("user_id"), {}).get("role")
+        role_str = DUMMY_USER_DATA.get(user_data.get("role"), {}).get("role")
         if role_str is None:
             return None
         return role_str

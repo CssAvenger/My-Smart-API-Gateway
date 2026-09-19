@@ -4,8 +4,9 @@ import uuid
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
-from gateway.services.access_control import Roles, Action, AccessControl
-from services.rate_limiter import MemoryRateLimiter
+from gateway.services.access_control import AccessControl
+from gateway.services.jwt_handler import JWTHandler
+from gateway.services.rate_limiter import MemoryRateLimiter
 
 
 limiter = {}
@@ -75,7 +76,6 @@ def register_middlewares(app: FastAPI) -> None:
 
             token = auth_header.split(" ")[1]
 
-            from services.jwt_handler import JWTHandler
             jwt_handler = JWTHandler()
             try:
                 if not jwt_handler.decode(token):
@@ -115,7 +115,6 @@ def register_middlewares(app: FastAPI) -> None:
 
             token = auth_header.split(" ")[1]
 
-            from services.jwt_handler import JWTHandler
             jwt_handler = JWTHandler()
             try:
                 payload = jwt_handler.decode(token)
@@ -129,7 +128,7 @@ def register_middlewares(app: FastAPI) -> None:
                         }
                     )
                 # Example RBAC logic: Only allow 'admin' role to access certain endpoints
-                if user_role == Roles.USER and request:
+                if AccessControl.is_allowed(user_role, request.url.path, request.method) is False:
                     return JSONResponse(
                         status_code=403,
                         content={

@@ -36,13 +36,29 @@ async def gateway_forward(
     if parsed.query:
         target_url = f"{target_url}?{parsed.query}"
 
+    forward_headers = dict(headers)
+    for key in (
+        "content-length",
+        "transfer-encoding",
+        "connection",
+        "keep-alive",
+        "proxy-authenticate",
+        "proxy-authorization",
+        "te",
+        "trailer",
+        "upgrade",
+        "host",
+    ):
+        forward_headers.pop(key, None)
+        forward_headers.pop(key.title(), None)
+
     print(f"Forwarding request to backend: {target_url}")
 
     async with httpx.AsyncClient() as client:
         upstream = await client.request(
             method=method,
             url=target_url,
-            headers=headers,
+            headers=forward_headers,
             content=body,
         )
 
